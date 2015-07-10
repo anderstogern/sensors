@@ -1,6 +1,6 @@
 /*
 Code for measuring air temperature and relative humidity using a RHT03 connected to t TinyTX3.
-By Anders S. Tøgern
+By Anders S. Tøgern, heavily inspired by Nathan Chantrell's TinyTX3: https://github.com/nathanchantrell/TinyTX
 
 Licenced under the Creative Commons Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0) licence:
 http://creativecommons.org/licenses/by-sa/3.0/
