@@ -10,16 +10,19 @@ http://creativecommons.org/licenses/by-sa/3.0/
 #include <JeeLib.h> // https://github.com/jcw/jeelib
 #include <dht.h>
 
-#define myNodeID 10       // RF12 node ID in the range 1-30
-#define network 210       // RF12 Network group
-#define freq RF12_433MHZ  // Frequency of RFM12B module
+#define myNodeID         11           // RF12 node ID in the range 1-30
+#define network          210          // RF12 Network group
+#define freq             RF12_433MHZ  // Frequency of RFM12B module
 
-#define USE_ACK           // Enable ACKs, comment out to disable
-#define RETRY_PERIOD 5    // How soon to retry (in seconds) if ACK didn't come in
-#define RETRY_LIMIT 5     // Maximum number of times to retry
-#define ACK_TIME 10       // Number of milliseconds to wait for an ack
+#define USE_ACK                // Enable ACKs, comment out to disable
+#define RETRY_PERIOD     5     // How soon to retry (in seconds) if ACK didn't come in
+#define RETRY_LIMIT      5     // Maximum number of times to retry
+#define ACK_TIME         10    // Number of milliseconds to wait for an ack
 
-#define RHT03_PIN 10
+#define MINUTE           60 * 1000
+
+#define RHT03_POWER_PIN  10
+#define RHT03_PIN        9
 
 typedef struct {
   int temp;	// Temperature reading
@@ -103,19 +106,29 @@ void setup() {
   
   rf12_initialize(myNodeID,freq,network); // Initialize RFM12 with settings defined above 
   rf12_sleep(0);                          // Put the RFM12 to sleep
+  
+  pinMode(RHT03_POWER_PIN, OUTPUT);
+  digitalWrite(RHT03_POWER_PIN, LOW);
 }
 
 void loop() {
+  digitalWrite(RHT03_POWER_PIN, HIGH);
+  
+  Sleepy::loseSomeTime(2000);
+  
   while (DHT.read22(RHT03_PIN) != DHTLIB_OK) {
     Sleepy::loseSomeTime(500);
   }
   
-  tinytx.temp = DHT.temperature;
-  tinytx.humidity = DHT.humidity;
+  tinytx.temp = DHT.temperature * 100;
+  tinytx.humidity = DHT.humidity * 100;
+  
+  digitalWrite(RHT03_POWER_PIN, LOW);
   
   tinytx.supplyV = readVcc(); // Get supply voltage
   
   rfwrite(); // Send data via RF
   
-  Sleepy::loseSomeTime(60 * 60 * 30 * 1000); //JeeLabs power save function: enter low power mode for 60 seconds (valid range 16-65000 ms)
+  for (int i=0; i<5; i++) //Sleep for 5 minutes (5 * 1 minute)
+    Sleepy::loseSomeTime(MINUTE); //JeeLabs power save function: enter low power mode for 60 seconds (valid range 16-65000 ms)
 }
