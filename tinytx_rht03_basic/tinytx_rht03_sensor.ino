@@ -25,7 +25,7 @@ http://creativecommons.org/licenses/by-sa/3.0/
 #define RHT03_PIN        9
 
 typedef struct {
-  int temp;	// Temperature reading
+  int temp;     // Temperature reading
   int humidity; // Humidity reading
   int supplyV;	// Supply voltage
 } Payload;
@@ -39,10 +39,10 @@ dht DHT;
 // Wait a few milliseconds for proper ACK
 #ifdef USE_ACK
   static byte waitForAck() {
-  MilliTimer ackTimer;
-  while (!ackTimer.poll(ACK_TIME)) {
-    if (rf12_recvDone() && rf12_crc == 0 &&
-      rf12_hdr == (RF12_HDR_DST | RF12_HDR_CTL | myNodeID))
+    MilliTimer ackTimer;
+    while (!ackTimer.poll(ACK_TIME)) {
+      if (rf12_recvDone() && rf12_crc == 0 &&
+        rf12_hdr == (RF12_HDR_DST | RF12_HDR_CTL | myNodeID))
       return 1;
     }
     return 0;
@@ -55,7 +55,7 @@ dht DHT;
 static void rfwrite(){
   #ifdef USE_ACK
     for (byte i = 0; i <= RETRY_LIMIT; ++i) {  // tx and wait for ack up to RETRY_LIMIT times
-      rf12_sleep(-1);              // Wake up RF module
+      rf12_sleep(-1);             // Wake up RF module
       while (!rf12_canSend())
         rf12_recvDone();
       rf12_sendStart(RF12_HDR_ACK, &tinytx, sizeof tinytx); 
@@ -64,15 +64,15 @@ static void rfwrite(){
       rf12_sleep(0);              // Put RF module to sleep
       if (acked) { return; }      // Return if ACK received
 
-      Sleepy::loseSomeTime(RETRY_PERIOD * 1000);     // If no ack received wait and try again
+      Sleepy::loseSomeTime(RETRY_PERIOD * 1000); // If no ack received wait and try again
     }
   #else
-    rf12_sleep(-1);              // Wake up RF module
+    rf12_sleep(-1);               // Wake up RF module
     while (!rf12_canSend())
       rf12_recvDone();
     rf12_sendStart(0, &tinytx, sizeof tinytx); 
-    rf12_sendWait(2);           // Wait for RF to finish sending while in standby mode
-    rf12_sleep(0);              // Put RF module to sleep
+    rf12_sendWait(2);             // Wait for RF to finish sending while in standby mode
+    rf12_sleep(0);                // Put RF module to sleep
     return;
   #endif
 }
@@ -124,6 +124,7 @@ void loop() {
   tinytx.humidity = DHT.humidity * 100;
   
   digitalWrite(RHT03_POWER_PIN, LOW);
+  digitalWrite(RHT03_PIN, LOW); //IMPORTANT: In order to turn RHT03 completely off during sleep its output pin must be pulled low (is pulled high in DHTLib)
   
   tinytx.supplyV = readVcc(); // Get supply voltage
   
